@@ -41,7 +41,7 @@ Keep **Skip version check** enabled when launching.
 
 Set **time between launches** to 30 seconds in launch presets.
 
-Make sure to select the install **after** signing into an Epic account.
+Make sure to select the install **after** signing into an Epic account. (This is required because the **“Set up all profiles”** button isn’t currently working.)
 
 
 ## ‼️Important: profile security‼️
