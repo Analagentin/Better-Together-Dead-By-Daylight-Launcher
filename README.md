@@ -35,6 +35,7 @@ different graphics or control settings.
 
 Keep **Skip version check** enabled when launching.
 Set **time between launches** to 30 seconds in launch presets.
+Make sure to select the install **after** signing into an Epic account.
 
 ## Important: profile security
 
