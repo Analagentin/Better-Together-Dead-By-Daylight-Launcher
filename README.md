@@ -44,7 +44,7 @@ Set **time between launches** to 30 seconds in launch presets.
 Make sure to select the install **after** signing into an Epic account.
 
 
-## Important: profile security
+## ‼️Important: profile security‼️
 
 Profile folders contain sensitive Epic authentication data. Treat all local
 profile files like passwords or login credentials. Do not share, copy, or
