@@ -30,8 +30,9 @@ different graphics or control settings.
    **Run anyway**.
 4. Create a folder anywhere on your PC and select it as the **Profile Library**.
 5. Create at least one profile.
-6. Select the Dead by Daylight installation **folder**, not `DeadByDaylight.exe`.
-7. Select **Sign in to Epic Games** and complete the sign-in window.
+6. Select **Sign in to Epic Games** and complete the sign-in window.
+7. Select the Dead by Daylight installation **folder**, not `DeadByDaylight.exe`.
+
 
    
 
