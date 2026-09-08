@@ -33,6 +33,7 @@ different graphics or control settings.
 6. Select the Dead by Daylight installation **folder**, not `DeadByDaylight.exe`.
 7. Select **Sign in to Epic Games** and complete the sign-in window.
 
+
 Keep **Skip version check** enabled when launching.
 
 Set **time between launches** to 30 seconds in launch presets.
