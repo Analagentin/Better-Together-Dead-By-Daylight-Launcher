@@ -1,0 +1,13 @@
+# Python and static-analysis caches
+__pycache__/
+*.py[cod]
+.ruff_cache/
+
+# Build products and downloaded release dependencies
+build/
+dist/
+*.spec
+vendor/
+
+# Local application data
+.smoke*/
