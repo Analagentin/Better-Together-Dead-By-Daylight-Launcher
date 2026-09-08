@@ -5,7 +5,7 @@ multiple Epic Games profiles from one installation.
 
 ## Download
 
-[Download Better Together v1.2beta for Windows](./Better%20Together%20-%20Dead%20By%20Daylight%20Launcher.exe)
+[Download Better Together 1.5.1 for Windows](./Better%20Together%20-%20Dead%20By%20Daylight%20Launcher.exe)
 
 The executable's SHA-256 digest is recorded in `SHA256SUMS.txt`.
 
@@ -22,9 +22,8 @@ different graphics or control settings.
 
 ## Setup
 
-1. Install Dead by Daylight through the official Epic Games Launcher and launch
-   it once. This installs Epic Online Services and other required components.
-   You can skip this step if your existing Epic installation already works.
+1. Install Dead by Daylight through the **official Epic Games Launcher** and launch
+   it once. This installs Epic Online Services and other required components. You can skip this step if your existing Epic installation already works.(The built-in install option in Better Together should work, but due to some newer Better Together features and a new version of Legendary, you might run into some issues.)
 2. Download the executable or build the project from source.
 3. Open the executable. If Windows SmartScreen appears, verify that you
    downloaded it from this repository before choosing **More info** and
@@ -35,6 +34,7 @@ different graphics or control settings.
 7. Select **Sign in to Epic Games** and complete the sign-in window.
 
 Keep **Skip version check** enabled when launching.
+Set **time between launches** to 30 seconds in launch presets.
 
 ## Important: profile security
 
@@ -51,8 +51,7 @@ open-source alternative to the Epic Games Launcher. It uses Legendary 0.21.0
 for normal Epic Games operations and Legendary 0.20.34 for the embedded Epic
 sign-in window.
 
-The Easy Anti-Cheat splash labeling was inspired by @crweul's
-make-your-choice project.
+The branding was inspired by [@crweul's make-your-choice](https://github.com/crweul/make-your-choice).
 
 ## Build from source
 
@@ -68,7 +67,7 @@ the executable in `dist`.
 
 ## To do
 
-- Make graphics and input presets launch reliably in every sequence.
+- Make graphics and input presets launch more reliable in every sequence.
 - Add shortcuts, such as a single key for running in place during pixel tech.
 - Support multiple game installations, for example for HidHide.
 - Add advanced account-security protections.
