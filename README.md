@@ -41,7 +41,7 @@ Keep **Skip version check** enabled when launching.
 
 Set **time between launches** to 30 seconds in launch presets.
 
-Make sure to select the game path **after** signing in to your Epic account. This is required because the **“Set up all profiles”** button is currently not working and will be removed in a future update, as it will no longer be needed. You only need to do this once.
+Make sure to select the game path **after** signing in to at least one Epic account. This is required because the **“Set up all profiles”** button is currently not working and will be removed in a future update, as it will no longer be needed. You only need to do this once.
 
 
 ## ‼️Important: profile security‼️
