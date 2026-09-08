@@ -34,8 +34,11 @@ different graphics or control settings.
 7. Select **Sign in to Epic Games** and complete the sign-in window.
 
 Keep **Skip version check** enabled when launching.
+
 Set **time between launches** to 30 seconds in launch presets.
+
 Make sure to select the install **after** signing into an Epic account.
+
 
 ## Important: profile security
 
