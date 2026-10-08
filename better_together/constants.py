@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 from .config import AppPaths
 
@@ -10,10 +9,9 @@ DBD_TEMPLATE_FILE = _DEFAULT_PATHS.dbd_template_file
 LEGACY_GRAPHICS_PRESET_DIR = _DEFAULT_PATHS.legacy_graphics_preset_dir
 DBD_APP_NAME = "Brill"
 DBD_EXECUTABLE = "DeadByDaylight.exe"
-EAC_SPLASH_RELATIVE = Path("EasyAntiCheat") / "SplashScreen.png"
 APP_NAME = "Better Together: Dead By Daylight Launcher"
-APP_VERSION = "1.2beta"
-APP_DISPLAY_VERSION = "1.2 beta"
+APP_VERSION = "1.2.1"
+APP_DISPLAY_VERSION = "1.2.1"
 GAME_SETTINGS_SECTION = "/Script/DeadByDaylight.DBDGameUserSettings"
 INPUT_SETTINGS_SECTION = "/Script/EnhancedInput.EnhancedPlayerInput"
 SCALABILITY_SECTION = "ScalabilityGroups"

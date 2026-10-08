@@ -773,7 +773,12 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
         existing_entries = existing.get("entries")
         if not isinstance(existing_entries, list):
             existing_entries = [
-                {"account": account, "graphics_preset": None, "input_preset": None}
+                {
+                    "account": account,
+                    "graphics_preset": None,
+                    "input_preset": None,
+                    "game_path": None,
+                }
                 for account in existing.get("accounts", [])
             ]
         entry_items = [
@@ -781,6 +786,7 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
                 "account": entry.get("account"),
                 "graphics_preset": entry.get("graphics_preset") or None,
                 "input_preset": entry.get("input_preset") or None,
+                "game_path": entry.get("game_path") or None,
             }
             for entry in existing_entries
             if isinstance(entry, dict) and entry.get("account") in accounts
@@ -792,8 +798,8 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
         dialog.title("Edit Launch Preset" if preset_name else "New Launch Preset")
         dialog.transient(self)
         dialog.grab_set()
-        dialog.geometry("900x650")
-        dialog.minsize(780, 580)
+        dialog.geometry("1180x680")
+        dialog.minsize(1000, 610)
         dialog.configure(background=COLORS["bg"])
         self._apply_icon_to_window(dialog)
 
@@ -803,7 +809,7 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
             outer,
             "Launch automation",
             "Edit launch preset" if preset_name else "Create launch preset",
-            "Choose profiles, assign per-profile settings, and control launch order.",
+            "Choose profiles, game installations, settings, and launch order.",
         )
         card = SmoothCard(outer, padding=18, radius=18, shadow=True)
         card.pack(fill="both", expand=True)
@@ -811,6 +817,7 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
         frame.columnconfigure(0, weight=1)
         frame.columnconfigure(1, weight=1)
         frame.columnconfigure(2, weight=1)
+        frame.columnconfigure(3, weight=2)
         frame.rowconfigure(4, weight=1)
         ttk.Label(
             frame,
@@ -822,7 +829,7 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
         name_entry.grid(
             row=0,
             column=1,
-            columnspan=2,
+            columnspan=3,
             sticky="ew",
             padx=(12, 0),
         )
@@ -835,6 +842,9 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
         )
         ttk.Label(frame, text="INPUT PRESET", style="FieldLabel.TLabel").grid(
             row=1, column=2, sticky="w", padx=(8, 0), pady=(18, 5)
+        )
+        ttk.Label(frame, text="GAME INSTALLATION", style="FieldLabel.TLabel").grid(
+            row=1, column=3, sticky="w", padx=(8, 0), pady=(18, 5)
         )
         available_var = tk.StringVar()
         available_combo = ttk.Combobox(
@@ -865,12 +875,61 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
             width=24,
         )
         input_combo.grid(row=2, column=2, sticky="ew", padx=(8, 0))
+        main_install_label = "Main game folder"
+        game_path_var = tk.StringVar(value=main_install_label)
+        game_path_frame = ttk.Frame(frame, style="CardInner.TFrame")
+        game_path_frame.grid(row=2, column=3, sticky="ew", padx=(8, 0))
+        game_path_frame.columnconfigure(0, weight=1)
+        ttk.Entry(
+            game_path_frame,
+            textvariable=game_path_var,
+            state="readonly",
+            width=34,
+        ).grid(row=0, column=0, sticky="ew")
+
+        def browse_game_path():
+            current = game_path_var.get()
+            initial_dir = (
+                current
+                if current and current != main_install_label
+                else self.manager.dbd_path or self.manager.account_folder
+            )
+            dialog_options = {
+                "parent": dialog,
+                "title": "Select Dead by Daylight Installation Folder",
+            }
+            if initial_dir:
+                dialog_options["initialdir"] = str(initial_dir)
+            selected = filedialog.askdirectory(**dialog_options)
+            if not selected:
+                return
+            try:
+                game_path_var.set(str(self.manager.validate_dbd_path(selected)))
+            except ManagerError as exc:
+                messagebox.showerror(
+                    "Invalid Game Installation",
+                    str(exc),
+                    parent=dialog,
+                )
+
+        ttk.Button(
+            game_path_frame,
+            text="Browse…",
+            command=browse_game_path,
+            style="Compact.TButton",
+        ).grid(row=0, column=1, padx=(6, 0))
+        ttk.Button(
+            game_path_frame,
+            text="Main",
+            command=lambda: game_path_var.set(main_install_label),
+            style="Compact.TButton",
+        ).grid(row=0, column=2, padx=(6, 0))
 
         ttk.Label(
             frame,
             text="PROFILES TO LAUNCH · DRAG ORDER WITH THE CONTROLS BELOW",
             style="FieldLabel.TLabel",
-        ).grid(row=3, column=0, columnspan=3, sticky="w", pady=(18, 5))
+        ).grid(row=3, column=0, columnspan=4, sticky="w", pady=(18, 5))
         account_list = tk.Listbox(
             frame,
             selectmode="browse",
@@ -879,27 +938,40 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
             width=48,
         )
         self._style_listbox(account_list)
-        account_list.grid(row=4, column=0, columnspan=3, sticky="nsew")
+        account_list.grid(row=4, column=0, columnspan=4, sticky="nsew")
+
+        def load_selected_entry(_event=None):
+            selection = account_list.curselection()
+            if not selection:
+                return
+            entry = entry_items[selection[0]]
+            graphics_var.set(entry["graphics_preset"] or "Current settings")
+            input_var.set(entry["input_preset"] or "Current settings")
+            game_path_var.set(entry["game_path"] or main_install_label)
 
         def refresh_entry_list(selected_index=None):
             account_list.delete(0, "end")
             for entry in entry_items:
                 graphics_name = entry["graphics_preset"] or "Current settings"
                 input_name = entry["input_preset"] or "Current settings"
+                game_path = entry["game_path"]
+                game_label = Path(game_path).name if game_path else main_install_label
                 account_list.insert(
                     "end",
                     f"{entry['account']}  -  Graphics: {graphics_name}  -  "
-                    f"Controls: {input_name}",
+                    f"Controls: {input_name}  -  Install: {game_label}",
                 )
             if selected_index is not None and entry_items:
                 selected_index = max(0, min(selected_index, len(entry_items) - 1))
                 account_list.selection_set(selected_index)
                 account_list.activate(selected_index)
+                load_selected_entry()
 
         refresh_entry_list()
+        account_list.bind("<<ListboxSelect>>", load_selected_entry)
 
         order_buttons = ttk.Frame(frame, style="CardInner.TFrame")
-        order_buttons.grid(row=5, column=0, columnspan=3, sticky="ew", pady=(8, 0))
+        order_buttons.grid(row=5, column=0, columnspan=4, sticky="ew", pady=(8, 0))
 
         def add_account():
             account = available_var.get()
@@ -917,6 +989,11 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
                             None
                             if input_var.get() == "Current settings"
                             else input_var.get()
+                        ),
+                        "game_path": (
+                            None
+                            if game_path_var.get() == main_install_label
+                            else game_path_var.get()
                         ),
                     }
                 )
@@ -945,6 +1022,16 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
             preset = input_var.get()
             entry_items[selection[0]]["input_preset"] = (
                 None if preset == "Current settings" else preset
+            )
+            refresh_entry_list(selection[0])
+
+        def set_game_path():
+            selection = account_list.curselection()
+            if not selection:
+                return
+            selected_path = game_path_var.get()
+            entry_items[selection[0]]["game_path"] = (
+                None if selected_path == main_install_label else selected_path
             )
             refresh_entry_list(selection[0])
 
@@ -988,6 +1075,12 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
         ).pack(side="left", padx=(6, 0))
         ttk.Button(
             order_buttons,
+            text="Set Install",
+            command=set_game_path,
+            style="Compact.TButton",
+        ).pack(side="left", padx=(6, 0))
+        ttk.Button(
+            order_buttons,
             text="Move up",
             command=lambda: move_selected(-1),
             style="Compact.TButton",
@@ -1021,7 +1114,7 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
         ).pack(side="left", padx=(6, 0))
 
         buttons = ttk.Frame(frame, style="CardInner.TFrame")
-        buttons.grid(row=7, column=0, columnspan=3, sticky="e", pady=(16, 0))
+        buttons.grid(row=7, column=0, columnspan=4, sticky="e", pady=(16, 0))
 
         def save():
             try:
@@ -1082,7 +1175,12 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
         entries = preset.get("entries")
         if not isinstance(entries, list):
             entries = [
-                {"account": account, "graphics_preset": None, "input_preset": None}
+                {
+                    "account": account,
+                    "graphics_preset": None,
+                    "input_preset": None,
+                    "game_path": None,
+                }
                 for account in preset.get("accounts", [])
             ]
         delay_seconds = preset.get("delay_seconds", 20)
@@ -1142,8 +1240,11 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
             return
 
         try:
-            for account in accounts:
-                self.manager.sync_dbd_installation(accounts=[account])
+            for entry, account in zip(entries, accounts):
+                self.manager.sync_dbd_installation(
+                    accounts=[account],
+                    game_path=entry.get("game_path") or None,
+                )
             delay_seconds = int(delay_seconds)
             if not 0 <= delay_seconds <= 3600:
                 raise ManagerError(
@@ -1287,7 +1388,6 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
             self._run_legendary(
                 arguments,
                 "Launching Dead by Daylight",
-                splash_profile=account,
                 account=account,
             )
         except ManagerError as exc:
@@ -1338,7 +1438,6 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
         arguments,
         activity,
         on_success=None,
-        splash_profile=None,
         account=None,
         auth_client=False,
     ):
@@ -1349,15 +1448,6 @@ class EGSApp(SettingsDialogMixin, tk.Tk):
             )
             return
         try:
-            if splash_profile:
-                splash_file, backup_file = self.manager.prepare_eac_splash(
-                    splash_profile
-                )
-                self._append_output(
-                    f"EAC splash labelled for '{splash_profile}': "
-                    f"{splash_file}\n"
-                    f"Original EAC splash backup: {backup_file}\n"
-                )
             command_factory = (
                 self.manager.auth_command if auth_client else self.manager.command
             )

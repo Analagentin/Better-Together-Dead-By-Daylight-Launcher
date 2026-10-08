@@ -159,12 +159,6 @@ class PresetLauncher:
                 if skip_version_check:
                     arguments.append("--skip-version-check")
                 arguments.extend(launch_arguments)
-                splash_file, backup_file = self.manager.prepare_eac_splash(account)
-                self.emit(
-                    "text",
-                    f"EAC splash labelled for '{account}': {splash_file}\n"
-                    f"Original EAC splash backup: {backup_file}\n",
-                )
                 command, env = self.manager.command(arguments, account=account)
                 self.runner.launch_detached(command, env)
                 self.emit("text", f"Launched '{account}'.\n")

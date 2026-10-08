@@ -1,4 +1,3 @@
-import hashlib
 import json
 import os
 import re
@@ -14,7 +13,6 @@ from .config import AppPaths, ConfigStore, atomic_write_json, atomic_write_text
 from .constants import (
     DBD_APP_NAME,
     DBD_EXECUTABLE,
-    EAC_SPLASH_RELATIVE,
     GAME_SETTINGS_SECTION,
     INPUT_SETTINGS_SECTION,
     MOUSE_KEYS,
@@ -23,12 +21,6 @@ from .constants import (
 )
 from .errors import ManagerError
 from .settings_data import DEFAULT_AXIS_MAPPINGS, parse_values, update_values
-
-try:
-    from PIL import Image, ImageDraw, ImageFont, PngImagePlugin
-except ImportError:  # The packaged build includes Pillow via requirements.txt.
-    Image = ImageDraw = ImageFont = PngImagePlugin = None
-
 
 _SAFE_NAME_PATTERN = re.compile(r"[\w .-]+", flags=re.UNICODE)
 
@@ -268,18 +260,23 @@ class EGSManager:
                 account = entry
                 graphics_preset = None
                 input_preset = None
+                game_path = None
             elif isinstance(entry, dict):
                 account = entry.get("account")
                 graphics_preset = entry.get("graphics_preset") or None
                 input_preset = entry.get("input_preset") or None
+                game_path = entry.get("game_path") or None
             else:
                 raise ManagerError("The launch preset contains an invalid profile.")
+            if game_path:
+                game_path = str(self.validate_dbd_path(game_path))
             if account and account not in seen_accounts:
                 normalized_entries.append(
                     {
                         "account": account,
                         "graphics_preset": graphics_preset,
                         "input_preset": input_preset,
+                        "game_path": game_path,
                     }
                 )
                 seen_accounts.add(account)
@@ -1049,148 +1046,6 @@ class EGSManager:
             and isinstance(asset_infos.get("Windows"), dict)
         )
 
-    def _eac_splash_backup_path(self, splash_file):
-        identity = hashlib.sha256(
-            str(splash_file.resolve()).casefold().encode("utf-8")
-        ).hexdigest()[:12]
-        return self.paths.data_dir / f"eac_splash_original-{identity}.png"
-
-    @staticmethod
-    def _splash_font(size, bold=False):
-        windows_dir = Path(os.environ.get("WINDIR", r"C:\Windows"))
-        candidates = (
-            windows_dir / "Fonts" / ("segoeuib.ttf" if bold else "segoeui.ttf"),
-            windows_dir / "Fonts" / ("arialbd.ttf" if bold else "arial.ttf"),
-        )
-        for candidate in candidates:
-            if candidate.is_file():
-                try:
-                    return ImageFont.truetype(str(candidate), size=size)
-                except OSError:
-                    continue
-        return ImageFont.load_default()
-
-    def _render_profile_splash(self, source_file, profile, destination):
-        with Image.open(source_file) as source:
-            image = source.convert("RGBA")
-
-        width, height = image.size
-        if width < 320 or height < 180:
-            raise ManagerError(
-                "The EAC splash image is too small to add a readable profile name."
-            )
-
-        margin = max(18, round(min(width, height) * 0.045))
-        horizontal_padding = max(28, round(width * 0.045))
-        vertical_padding = max(18, round(height * 0.04))
-        name_size = max(24, round(height * 0.08))
-        name_font = self._splash_font(name_size, bold=True)
-        draw = ImageDraw.Draw(image, "RGBA")
-        available_width = width - (margin + horizontal_padding) * 2
-
-        while name_size > 18:
-            name_box = draw.textbbox((0, 0), profile, font=name_font)
-            if name_box[2] - name_box[0] <= available_width:
-                break
-            name_size -= 2
-            name_font = self._splash_font(name_size, bold=True)
-
-        name_box = draw.textbbox((0, 0), profile, font=name_font)
-        name_width = name_box[2] - name_box[0]
-        name_height = name_box[3] - name_box[1]
-        panel_width = min(width - margin * 2, name_width + horizontal_padding * 2)
-        panel_height = name_height + vertical_padding * 2
-        panel_left = round((width - panel_width) / 2)
-        panel_top = round((height - panel_height) / 2)
-        panel_box = (
-            panel_left,
-            panel_top,
-            panel_left + panel_width,
-            panel_top + panel_height,
-        )
-        draw.rectangle(panel_box, fill=(0, 0, 0, 255))
-        text_x = round(width / 2 - (name_box[0] + name_box[2]) / 2)
-        text_y = round(height / 2 - (name_box[1] + name_box[3]) / 2)
-        draw.text(
-            (text_x, text_y),
-            profile,
-            font=name_font,
-            fill=(255, 255, 255, 255),
-        )
-
-        metadata = PngImagePlugin.PngInfo()
-        metadata.add_text("BetterTogetherSplash", "1")
-        metadata.add_text("BetterTogetherProfile", profile)
-        metadata.add_text("BetterTogetherBase", str(source_file))
-        image.convert("RGB").save(
-            destination,
-            format="PNG",
-            pnginfo=metadata,
-            optimize=True,
-        )
-
-    def prepare_eac_splash(self, profile, game_path=None):
-        profile = self.validate_account_name(profile)
-        if Image is None:
-            raise ManagerError(
-                "Profile-labelled EAC splash images require Pillow. "
-                "Use the packaged launcher or install its requirements."
-            )
-        selected_game_path = game_path or self.dbd_path
-        if not selected_game_path:
-            raise ManagerError("Select the Dead by Daylight installation folder first.")
-        game_path = self.validate_dbd_path(selected_game_path)
-        splash_file = game_path / EAC_SPLASH_RELATIVE
-        if not splash_file.is_file():
-            raise ManagerError(
-                f"The EAC splash image was not found at '{splash_file}'."
-            )
-
-        backup_file = self._eac_splash_backup_path(splash_file)
-        temporary_file = splash_file.with_name(
-            f".{splash_file.name}.better-together-{os.getpid()}.tmp"
-        )
-        try:
-            with Image.open(splash_file) as current:
-                generated_by_launcher = current.info.get("BetterTogetherSplash") == "1"
-                current.verify()
-
-            if generated_by_launcher and not backup_file.is_file():
-                raise ManagerError(
-                    "The original EAC splash backup is missing. Restore "
-                    f"'{splash_file}' through Epic Games or replace it with an "
-                    "unmodified splash image, then launch again."
-                )
-
-            if not generated_by_launcher:
-                shutil.copy2(splash_file, backup_file)
-
-            self._render_profile_splash(
-                backup_file,
-                profile,
-                temporary_file,
-            )
-            original_mode = splash_file.stat().st_mode
-            was_readonly = not bool(original_mode & stat.S_IWRITE)
-            if was_readonly:
-                splash_file.chmod(original_mode | stat.S_IWRITE)
-            os.replace(temporary_file, splash_file)
-            if was_readonly:
-                splash_file.chmod(original_mode)
-        except (OSError, ValueError) as exc:
-            raise ManagerError(
-                "The profile-labelled EAC splash could not be created. "
-                f"Close any running DBD/EAC clients and check access to "
-                f"'{splash_file}': {exc}"
-            ) from exc
-        finally:
-            if temporary_file.exists():
-                try:
-                    temporary_file.unlink()
-                except OSError:
-                    pass
-        return splash_file, backup_file
-
     def validate_dbd_path(self, path):
         game_path = Path(path).expanduser().resolve()
         if not game_path.is_dir():
@@ -1256,10 +1111,11 @@ class EGSManager:
     def has_dbd_template(self):
         return self._find_dbd_template() is not None
 
-    def sync_dbd_installation(self, accounts=None):
-        if not self.dbd_path:
+    def sync_dbd_installation(self, accounts=None, game_path=None):
+        selected_game_path = game_path or self.dbd_path
+        if not selected_game_path:
             raise ManagerError("Please select the Dead by Daylight folder first.")
-        game_path = self.validate_dbd_path(self.dbd_path)
+        game_path = self.validate_dbd_path(selected_game_path)
         template = self._find_dbd_template()
         if not template:
             raise ManagerError(

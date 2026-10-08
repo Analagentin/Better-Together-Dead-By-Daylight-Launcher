@@ -5,7 +5,7 @@ multiple Epic Games profiles from one installation.
 
 ## Download
 
-[Download Better Together v1.2beta](https://github.com/Analagentin/Better-Together-Dead-By-Daylight-Launcher/releases/download/v1.2beta/Better.Together.-.Dead.By.Daylight.Launcher.exe)
+[Download Better Together v1.2.1 for Windows](./Better%20Together%20-%20Dead%20By%20Daylight%20Launcher.exe)
 
 The executable's SHA-256 digest is recorded in `SHA256SUMS.txt`.
 
@@ -19,6 +19,8 @@ different graphics or control settings.
 - Switch between profiles in seconds.
 - Create reusable graphics and input presets.
 - Create launch sequences that combine profiles with graphics and input presets.
+- Choose a different Dead by Daylight installation for each profile in a launch preset.
+- Choose a different Dead by Daylight installation for each profile in a launch preset.
 
 ## Setup
 
@@ -59,8 +61,8 @@ open-source alternative to the Epic Games Launcher. It uses Legendary 0.21.0
 for normal Epic Games operations and Legendary 0.20.34 for the embedded Epic
 sign-in window.
 
+<<<<<<< HEAD
 The branding was inspired by [@crweul's make-your-choice](https://github.com/crweul/make-your-choice).
-
 ## Build from source
 
 Windows 10 or 11, Python 3.11 or newer, Tkinter, pip, and an internet
@@ -77,7 +79,6 @@ the executable in `dist`.
 
 - Make graphics and input presets launch more reliable in every sequence.
 - Add shortcuts, such as a single key for running in place during pixel tech.
-- Support multiple game installations, for example for HidHide.
 - Add advanced account-security protections.
 
 ## Feedback
