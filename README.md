@@ -5,9 +5,9 @@ multiple Epic Games profiles from one installation.
 
 ## Download
 
-[Download Better Together v1.2.1 for Windows](./Better%20Together%20-%20Dead%20By%20Daylight%20Launcher.exe)
+[Download Better Together v1.2.1 for Windows](https://github.com/Analagentin/Better-Together-Dead-By-Daylight-Launcher/releases/download/v1.2.1/Better.Together.-.Dead.By.Daylight.Launcher.exe)
 
-The executable's SHA-256 digest is recorded in `SHA256SUMS.txt`.
+The executable's SHA-256 digest is recorded in [SHA256SUMS.txt](./SHA256SUMS.txt).
 
 ## Features
 
