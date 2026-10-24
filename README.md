@@ -61,7 +61,7 @@ open-source alternative to the Epic Games Launcher. It uses Legendary 0.21.0
 for normal Epic Games operations and Legendary 0.20.34 for the embedded Epic
 sign-in window.
 
-<<<<<<< HEAD
+
 The branding was inspired by [@crweul's make-your-choice](https://github.com/crweul/make-your-choice).
 ## Build from source
 
