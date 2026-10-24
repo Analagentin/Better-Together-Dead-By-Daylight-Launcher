@@ -87,3 +87,4 @@ Suggestions and bug reports are welcome on Discord: `@analagentin`.
 
 Licensed under GPL-3.0-only. See `THIRD_PARTY_NOTICES.md` for bundled-component
 attribution.
+
